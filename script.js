@@ -6,43 +6,14 @@ graphRemote.innerHTML = "<canvas id='myGraphRemote'></canvas>";
 const h1 = document.getElementById("firstHeading");
 h1.appendChild(graphRemote);
 
-// On essaie
-
-// base url
-const graphRemoteURL = 'https://canvasjs.com/services/data/datapoints.php';
-const dataSS=[];
-// use fetch on the /posts route, then pass the response along
-fetch(graphRemoteURL + "/posts").then(response => {
-    // with the response, convert it to JSON, then pass it along
-    response.json().then(json => {
-        // print that JSON
-        console.log(json);
-        for(i=0; i<json.length;i++){
-           dataSS[i] = [];
-         dataSS[i].push(json[i]);
-        }
-      
-    });
-    
-});
-
-const graphRemoteLabels = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-  ];
+// CONFIGURATION DU GRAPH
 
   const graphRemoteData = {
     labels: graphRemoteLabels,
     datasets: [{
-      label: 'My First dataset',
+      label: 'Live statistic',
       backgroundColor: 'rgb(255, 99, 132)',
       borderColor: 'rgb(255, 99, 132)',
-      // data: [0, 10, 5, 2, 20, 30, 45],
-      data: dataSS,
     }]
   };
 
@@ -56,7 +27,33 @@ const graphRemoteLabels = [
     document.getElementById('myGraphRemote'),
     graphRemoteConfig
   );
-// ------------------------------------------------------------------------------
+
+// FUNCTION - Méthode FETCH 
+  function graphRemoteNewData(chart,label, data) {
+   chart.data.labels = label;
+   chart.data.datasets.forEach((dataset) => {
+       dataset.data = data;
+   });
+   chart.update();
+};
+
+var graphRemoteLabels = [];
+function getRemoteData(){
+   fetch("https://canvasjs.com/services/data/datapoints.php", {cache: "reload"})
+   .then(response=> response.json())
+   .then(datapoints => {
+
+       for(x=0; x<datapoints.length; x++){
+         graphRemoteLabels[x] = datapoints[x][0];
+       }; 
+       graphRemoteNewData(myGraphRemote, graphRemoteLabels, datapoints);
+   });
+};
+
+// Lancement de la fonction + Interval
+var intervalData = setInterval(getRemoteData, 3000)
+
+
 
 
   //---------------------------------------- FIRST TABLE - Insérer un graphique ----------------------------------------------------
@@ -64,7 +61,8 @@ const graphRemoteLabels = [
    // Code pour insérer le graphique sur la page. 
     const graphCrimesPolice = document.createElement("div");
     graphCrimesPolice.innerHTML = "<canvas id='chartCrimesPolice'></canvas>";
-    document.getElementById("Crimes_et_d.C3.A9lits_enregistr.C3.A9s_par_les_services_de_police").appendChild(graphCrimesPolice);
+    document.getElementById("table1").before(graphCrimesPolice);
+   //  document.getElementById("Crimes_et_d.C3.A9lits_enregistr.C3.A9s_par_les_services_de_police").appendChild(graphCrimesPolice);
 
     // CONFIGURATION DU GRAPH
       // LABELS - années reprises du tableau
@@ -94,7 +92,8 @@ const graphRemoteLabels = [
                GraphOneDataCountries[x].push(parseFloat(document.getElementById("table1").getElementsByTagName("tr")[i].getElementsByTagName("td")[j].textContent.replace(",",".")));
              } 
              // Index avec toutes les infos pour graph.
-             graphPaysData[x] = {label: GraphOneCountries[x], data: GraphOneDataCountries[x], fill: false, borderColor: getRandomColor(),tension: 0.1};  
+             let color = getRandomColor();
+             graphPaysData[x] = {label: GraphOneCountries[x], data: GraphOneDataCountries[x], fill: false, borderColor: color, backgroundColor: color, tension: 0.1};  
          }
      }
      // Générateur de couleurs pour graph.
